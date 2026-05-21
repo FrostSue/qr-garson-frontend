@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Restoran - Garson Cagir</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <style>
+        html, body { font-family: 'Inter', system-ui, sans-serif; }
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+        }
+        .btn-warn {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+        }
+        .btn-disabled {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            cursor: not-allowed;
+        }
+        .pulse-dot {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .toast {
+            transition: transform .3s ease, opacity .3s ease;
+        }
+        .toast-hidden {
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
+
+    <main class="w-full max-w-md">
+        <header class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 shadow-lg mb-4">
+                <span class="text-3xl">🍽️</span>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Hosgeldiniz</h1>
+            <p id="masa-info" class="text-slate-400 mt-2 text-lg">Masa yukleniyor...</p>
+        </header>
+
+        <section id="no-table" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-200 rounded-2xl p-6 text-center">
+            <div class="text-4xl mb-3">⚠️</div>
+            <h2 class="font-bold text-lg mb-1">Masa Bilgisi Bulunamadi</h2>
+            <p class="text-sm text-amber-100/80">Lutfen QR kodu masadan okutarak sayfaya tekrar erisin.</p>
+        </section>
+
+        <section id="actions" class="hidden space-y-4">
+            <button id="btn-garson" class="btn-primary w-full py-6 rounded-2xl text-xl font-bold shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                <span class="text-2xl">🙋</span>
+                <span class="btn-label">Garson Cagir</span>
+            </button>
+
+            <button id="btn-hesap" class="btn-warn w-full py-6 rounded-2xl text-xl font-bold shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                <span class="text-2xl">💳</span>
+                <span class="btn-label">Hesap Iste</span>
+            </button>
+
+            <p class="text-center text-xs text-slate-500 pt-4">
+                Bildirim, restoran ekibine aninda WhatsApp uzerinden iletilir.
+            </p>
+        </section>
+
+        <footer class="text-center mt-10 text-xs text-slate-600">
+            <span id="status-dot" class="inline-block w-2 h-2 rounded-full bg-slate-600 mr-1 align-middle"></span>
+            <span id="status-text">baglaniyor...</span>
+        </footer>
+    </main>
+
+    <div id="toast" class="toast toast-hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 px-5 py-3 rounded-xl shadow-2xl text-sm max-w-xs text-center"></div>
+
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+</body>
+</html>
