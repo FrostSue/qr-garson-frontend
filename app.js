@@ -12,9 +12,14 @@
     const els = {
         masaInfo: document.getElementById('masa-info'),
         noTable: document.getElementById('no-table'),
+        gpsWarning: document.getElementById('gps-warning'),
+        gpsWarningText: document.getElementById('gps-warning-text'),
         actions: document.getElementById('actions'),
+        btnMenu: document.getElementById('btn-menu'),
         btnGarson: document.getElementById('btn-garson'),
         btnHesap: document.getElementById('btn-hesap'),
+        menuModal: document.getElementById('menu-modal'),
+        btnCloseMenu: document.getElementById('btn-close-menu'),
         toast: document.getElementById('toast'),
         statusDot: document.getElementById('status-dot'),
         statusText: document.getElementById('status-text'),
@@ -28,6 +33,10 @@
     const COOLDOWN_KEY = `qr_cooldown_${masa}`;
 
     let toastTimer = null;
+    let userLat = null;
+    let userLng = null;
+    let cooldownInterval = null;
+
     function showToast(msg, kind = 'info') {
         if (toastTimer) clearTimeout(toastTimer);
         els.toast.textContent = msg;
@@ -36,17 +45,14 @@
         if (kind === 'error') els.toast.classList.add('border-red-500/50');
         else if (kind === 'success') els.toast.classList.add('border-emerald-500/50');
         else els.toast.classList.add('border-slate-700');
-
-        toastTimer = setTimeout(() => {
-            els.toast.classList.add('toast-hidden');
-        }, 3500);
+        toastTimer = setTimeout(() => els.toast.classList.add('toast-hidden'), 3500);
     }
 
     function setStatus(state) {
         const map = {
             connecting: { color: 'bg-amber-500', text: 'baglaniyor...' },
-            online: { color: 'bg-emerald-500 pulse-dot', text: 'sistem aktif' },
-            offline: { color: 'bg-red-500', text: 'sunucuya ulasilamiyor' },
+            online:     { color: 'bg-emerald-500 pulse-dot', text: 'sistem aktif' },
+            offline:    { color: 'bg-red-500', text: 'sunucuya ulasilamiyor' },
         };
         const s = map[state] || map.offline;
         els.statusDot.className = `inline-block w-2 h-2 rounded-full mr-1 align-middle ${s.color}`;
@@ -67,10 +73,8 @@
         }
     }
 
-    let cooldownInterval = null;
     function startCooldown(untilTs) {
         localStorage.setItem(COOLDOWN_KEY, String(untilTs));
-
         const tick = () => {
             const remaining = Math.ceil((untilTs - Date.now()) / 1000);
             if (remaining <= 0) {
@@ -80,10 +84,7 @@
                 buttons.forEach((b) => setButtonState(b, { disabled: false, label: b.label }));
                 return;
             }
-            buttons.forEach((b) => setButtonState(b, {
-                disabled: true,
-                label: `Bekleyin... ${remaining}s`,
-            }));
+            buttons.forEach((b) => setButtonState(b, { disabled: true, label: `Bekleyin... ${remaining}s` }));
         };
         tick();
         cooldownInterval = setInterval(tick, 1000);
@@ -91,10 +92,7 @@
 
     function resumeCooldownIfAny() {
         const v = parseInt(localStorage.getItem(COOLDOWN_KEY) || '0', 10);
-        if (v && v > Date.now()) {
-            startCooldown(v);
-            return true;
-        }
+        if (v && v > Date.now()) { startCooldown(v); return true; }
         if (v) localStorage.removeItem(COOLDOWN_KEY);
         return false;
     }
@@ -104,7 +102,7 @@
             const res = await fetch(`${CONFIG.API_BASE}/api/notify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ masa, type }),
+                body: JSON.stringify({ masa, type, lat: userLat, lng: userLng }),
             });
 
             const data = await res.json().catch(() => ({}));
@@ -123,7 +121,7 @@
             const cd = data.cooldownSeconds || CONFIG.COOLDOWN_SECONDS;
             startCooldown(Date.now() + cd * 1000);
             showToast('Bildirim gonderildi. Personelimiz en kisa surede gelecektir.', 'success');
-        } catch (err) {
+        } catch {
             showToast('Sunucuya ulasilamadi. Internet baglantinizi kontrol edin.', 'error');
         }
     }
@@ -132,11 +130,48 @@
         try {
             const res = await fetch(`${CONFIG.API_BASE}/api/health`);
             const data = await res.json();
-            if (data?.whatsapp?.ready) setStatus('online');
-            else setStatus('connecting');
+            setStatus(data?.whatsapp?.ready ? 'online' : 'connecting');
         } catch {
             setStatus('offline');
         }
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[c]));
+    }
+
+    function requestLocation() {
+        if (!navigator.geolocation) {
+            showGpsError('Tarayıcınız konum doğrulamayı desteklemiyor.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                userLat = pos.coords.latitude;
+                userLng = pos.coords.longitude;
+                els.gpsWarning.classList.add('hidden');
+                els.actions.classList.remove('hidden');
+            },
+            (err) => {
+                let msg = 'Konum izni verilmedi. Sistemi kullanmak için lütfen konum izni verin.';
+                if (err.code === err.TIMEOUT) {
+                    msg = 'Konum alma isteği zaman aşımına uğradı. Lütfen sayfayı yenileyin.';
+                } else if (err.code === err.POSITION_UNAVAILABLE) {
+                    msg = 'Konum bilgisi alınamadı. Lütfen konum servisinizin açık olduğundan emin olun.';
+                }
+                showGpsError(msg);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    function showGpsError(msg) {
+        els.gpsWarningText.textContent = msg;
+        els.gpsWarning.classList.remove('hidden');
+        els.actions.classList.add('hidden');
     }
 
     function init() {
@@ -147,7 +182,20 @@
         }
 
         els.masaInfo.innerHTML = `Masa <span class="font-bold text-white">${escapeHtml(masa)}</span>`;
-        els.actions.classList.remove('hidden');
+
+        els.btnMenu.addEventListener('click', () => {
+            els.menuModal.classList.add('modal-active');
+        });
+
+        els.btnCloseMenu.addEventListener('click', () => {
+            els.menuModal.classList.remove('modal-active');
+        });
+
+        els.menuModal.addEventListener('click', (e) => {
+            if (e.target === els.menuModal) {
+                els.menuModal.classList.remove('modal-active');
+            }
+        });
 
         buttons.forEach((b) => {
             b.el.addEventListener('click', () => {
@@ -164,12 +212,7 @@
         resumeCooldownIfAny();
         checkHealth();
         setInterval(checkHealth, 30_000);
-    }
-
-    function escapeHtml(s) {
-        return String(s).replace(/[&<>"']/g, (c) => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-        }[c]));
+        requestLocation();
     }
 
     document.addEventListener('DOMContentLoaded', init);
