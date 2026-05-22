@@ -97,6 +97,34 @@
         return false;
     }
 
+    const ERROR_TRANSLATIONS = {
+        'Too many requests. Please wait a bit.': 'Çok fazla istek. Lütfen biraz bekleyin.',
+        'Too many notification requests. Please wait.': 'Çok fazla bildirim isteği. Lütfen bekleyin.',
+        'Unauthorized.': 'Yetkisiz erişim.',
+        'Internal server error.': 'Sunucu hatası.',
+        'Table number is required.': 'Masa numarası gerekli.',
+        'Invalid table number.': 'Geçersiz masa numarası.',
+        'Invalid request type (must be garson or hesap).': 'Geçersiz istek türü.',
+        'Location information is required.': 'Konum bilgisi gerekli.',
+        'Invalid location information.': 'Geçersiz konum bilgisi.',
+        'Notifications cannot be sent from outside the restaurant.': 'Restoran dışından bildirim gönderilemez.',
+        'Server not configured: WHATSAPP_GROUP_ID is missing.': 'Sunucu yapılandırılmamış (WhatsApp Grup ID eksik).',
+        'WhatsApp connection is not ready. Please try again in a few seconds.': 'WhatsApp bağlantısı hazır değil. Lütfen birkaç saniye sonra tekrar deneyin.',
+        'Notification sent.': 'Bildirim gönderildi.',
+        'Upload endpoint is disabled. UPLOAD_SECRET is not configured.': 'Yükleme noktası devre dışı.',
+        'files object is required.': 'Dosya nesnesi gerekli.'
+    };
+
+    function getTurkishErrorMessage(errorStr) {
+        if (!errorStr) return null;
+        if (ERROR_TRANSLATIONS[errorStr]) return ERROR_TRANSLATIONS[errorStr];
+        const cooldownMatch = errorStr.match(/Please try again in (\d+) seconds\./);
+        if (cooldownMatch) {
+            return `Lütfen ${cooldownMatch[1]} saniye sonra tekrar deneyin.`;
+        }
+        return errorStr;
+    }
+
     async function sendNotify(type) {
         try {
             const res = await fetch(`${CONFIG.API_BASE}/api/notify`, {
@@ -109,12 +137,12 @@
 
             if (res.status === 429 && data.cooldownRemaining) {
                 startCooldown(Date.now() + data.cooldownRemaining * 1000);
-                showToast(data.error || 'Lutfen biraz bekleyin.', 'error');
+                showToast(getTurkishErrorMessage(data.error) || 'Lutfen biraz bekleyin.', 'error');
                 return;
             }
 
             if (!res.ok || !data.ok) {
-                showToast(data.error || 'Bildirim gonderilemedi.', 'error');
+                showToast(getTurkishErrorMessage(data.error) || 'Bildirim gonderilemedi.', 'error');
                 return;
             }
 
