@@ -14,12 +14,14 @@
         noTable: document.getElementById('no-table'),
         gpsWarning: document.getElementById('gps-warning'),
         gpsWarningText: document.getElementById('gps-warning-text'),
+        btnRetryGps: document.getElementById('btn-retry-gps'),
         actions: document.getElementById('actions'),
-        btnMenu: document.getElementById('btn-menu'),
         btnGarson: document.getElementById('btn-garson'),
         btnHesap: document.getElementById('btn-hesap'),
-        menuModal: document.getElementById('menu-modal'),
-        btnCloseMenu: document.getElementById('btn-close-menu'),
+        tabRequest: document.getElementById('tab-request'),
+        tabMenu: document.getElementById('tab-menu'),
+        sectionRequest: document.getElementById('section-request'),
+        sectionMenu: document.getElementById('section-menu'),
         toast: document.getElementById('toast'),
         statusDot: document.getElementById('status-dot'),
         statusText: document.getElementById('status-text'),
@@ -202,6 +204,26 @@
         els.actions.classList.add('hidden');
     }
 
+    function switchTab(activeTab) {
+        if (activeTab === 'request') {
+            els.tabRequest.classList.add('bg-white/10', 'text-white');
+            els.tabRequest.classList.remove('text-slate-400', 'hover:text-white');
+            els.tabMenu.classList.remove('bg-white/10', 'text-white');
+            els.tabMenu.classList.add('text-slate-400', 'hover:text-white');
+
+            els.sectionRequest.classList.remove('hidden');
+            els.sectionMenu.classList.add('hidden');
+        } else {
+            els.tabMenu.classList.add('bg-white/10', 'text-white');
+            els.tabMenu.classList.remove('text-slate-400', 'hover:text-white');
+            els.tabRequest.classList.remove('bg-white/10', 'text-white');
+            els.tabRequest.classList.add('text-slate-400', 'hover:text-white');
+
+            els.sectionMenu.classList.remove('hidden');
+            els.sectionRequest.classList.add('hidden');
+        }
+    }
+
     function init() {
         if (!masa) {
             els.masaInfo.classList.add('hidden');
@@ -211,18 +233,11 @@
 
         els.masaInfo.innerHTML = `Masa <span class="font-bold text-white">${escapeHtml(masa)}</span>`;
 
-        els.btnMenu.addEventListener('click', () => {
-            els.menuModal.classList.add('modal-active');
-        });
-
-        els.btnCloseMenu.addEventListener('click', () => {
-            els.menuModal.classList.remove('modal-active');
-        });
-
-        els.menuModal.addEventListener('click', (e) => {
-            if (e.target === els.menuModal) {
-                els.menuModal.classList.remove('modal-active');
-            }
+        els.tabRequest.addEventListener('click', () => switchTab('request'));
+        els.tabMenu.addEventListener('click', () => switchTab('menu'));
+        els.btnRetryGps.addEventListener('click', () => {
+            showToast('Konum güncelleniyor...', 'info');
+            requestLocation();
         });
 
         buttons.forEach((b) => {
