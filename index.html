@@ -47,19 +47,36 @@
             opacity: 0;
             pointer-events: none;
         }
+        #section-menu {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(16, 185, 129, 0.3) rgba(255, 255, 255, 0.02);
+            overscroll-behavior: contain;
+        }
         #section-menu::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
         }
         #section-menu::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 9999px;
         }
         #section-menu::-webkit-scrollbar-thumb {
-            background: rgba(16, 185, 129, 0.3);
-            border-radius: 4px;
+            background: rgba(16, 185, 129, 0.4);
+            border-radius: 9999px;
+            border: 1px solid transparent;
+            background-clip: padding-box;
         }
         #section-menu::-webkit-scrollbar-thumb:hover {
-            background: rgba(16, 185, 129, 0.5);
+            background: rgba(16, 185, 129, 0.6);
+        }
+        .tab-fade {
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tab-fade-active {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -87,7 +104,7 @@
         </div>
 
         <!-- Section 1: Request View -->
-        <div id="section-request" class="space-y-4">
+        <div id="section-request" class="tab-fade tab-fade-active space-y-4">
             <section id="no-table" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-200 rounded-2xl p-6 text-center">
                 <div class="text-4xl mb-3">⚠️</div>
                 <h2 class="font-bold text-lg mb-1">Masa Bilgisi Bulunamadi</h2>
@@ -122,7 +139,7 @@
         </div>
 
         <!-- Section 2: Text-Based Menu View -->
-        <section id="section-menu" class="hidden space-y-6 max-h-[50vh] overflow-y-auto pr-1">
+        <section id="section-menu" class="hidden tab-fade space-y-6 max-h-[50vh] overflow-y-auto pr-2 pb-6">
             <!-- Category: Izgaralar & Ana Yemekler -->
             <div class="space-y-3">
                 <h3 class="text-xs font-extrabold uppercase tracking-widest text-emerald-400 border-b border-emerald-500/20 pb-1 flex items-center gap-1.5">
