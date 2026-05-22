@@ -187,7 +187,14 @@
             },
             (err) => {
                 let msg = 'Konum izni verilmedi. Sistemi kullanmak için lütfen konum izni verin.';
-                if (err.code === err.TIMEOUT) {
+                if (err.code === err.PERMISSION_DENIED) {
+                    msg = 'Konum izni reddedildi. Sistemi kullanabilmek için tarayıcınızdan konum izni vermeniz gerekmektedir.<br><br>' +
+                          '<div class="text-left bg-slate-950/40 p-3.5 rounded-xl border border-white/5 space-y-2 mt-3 text-xs leading-relaxed">' +
+                          '<strong class="text-white block mb-1">İzin Nasıl Açılır?</strong>' +
+                          '• <strong>iOS / Safari:</strong> Sol üstteki/sağ üstteki <strong>aA</strong> simgesine dokunun ➔ <em>Web Sitesi Ayarları</em> ➔ <em>Konum</em> seçeneğini <strong>İzin Ver</strong> yapıp sayfayı yenileyin.<br>' +
+                          '• <strong>Chrome / Android / PC:</strong> Adres çubuğundaki kilit (🔒) veya ayar simgesine tıklayın ➔ <em>Site Ayarları</em> ➔ <em>Konum</em> iznini aktif edin veya sıfırlayıp sayfayı yenileyin.' +
+                          '</div>';
+                } else if (err.code === err.TIMEOUT) {
                     msg = 'Konum alma isteği zaman aşımına uğradı. Lütfen sayfayı yenileyin.';
                 } else if (err.code === err.POSITION_UNAVAILABLE) {
                     msg = 'Konum bilgisi alınamadı. Lütfen konum servisinizin açık olduğundan emin olun.';
@@ -199,7 +206,7 @@
     }
 
     function showGpsError(msg) {
-        els.gpsWarningText.textContent = msg;
+        els.gpsWarningText.innerHTML = msg;
         els.gpsWarning.classList.remove('hidden');
         els.actions.classList.add('hidden');
     }
@@ -211,16 +218,28 @@
             els.tabMenu.classList.remove('bg-white/10', 'text-white');
             els.tabMenu.classList.add('text-slate-400', 'hover:text-white');
 
-            els.sectionRequest.classList.remove('hidden');
-            els.sectionMenu.classList.add('hidden');
+            els.sectionMenu.classList.remove('tab-fade-active');
+            setTimeout(() => {
+                els.sectionMenu.classList.add('hidden');
+                els.sectionRequest.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    els.sectionRequest.classList.add('tab-fade-active');
+                });
+            }, 150);
         } else {
             els.tabMenu.classList.add('bg-white/10', 'text-white');
             els.tabMenu.classList.remove('text-slate-400', 'hover:text-white');
             els.tabRequest.classList.remove('bg-white/10', 'text-white');
             els.tabRequest.classList.add('text-slate-400', 'hover:text-white');
 
-            els.sectionMenu.classList.remove('hidden');
-            els.sectionRequest.classList.add('hidden');
+            els.sectionRequest.classList.remove('tab-fade-active');
+            setTimeout(() => {
+                els.sectionRequest.classList.add('hidden');
+                els.sectionMenu.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    els.sectionMenu.classList.add('tab-fade-active');
+                });
+            }, 150);
         }
     }
 
